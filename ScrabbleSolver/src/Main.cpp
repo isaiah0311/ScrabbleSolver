@@ -45,9 +45,38 @@ std::vector<std::string> loadDictionary(_In_ HINSTANCE instance) {
 	std::stringstream stream(data);
 
 	std::string word;
-	while (std::getline(stream, word))
+	while (std::getline(stream, word)) {
+		word.pop_back();
 		dictionary.push_back(word);
+	}
+
 	return dictionary;
+}
+
+/**
+ * Converts a letter into its corresponding point value
+ *
+ * @param letter that will be converted into a point value
+ * @return point value of the given letter
+ */
+int convert(char const letter) {
+	static int points[26] = { 1, 3, 3, 2, 1, 4, 2, 4, 1, 8, 5, 1, 3, 1, 1, 3,
+		10, 1, 1, 1, 1, 4, 4, 8, 4, 10 };
+	return points[static_cast<int>(letter - 'A')];
+}
+
+/**
+ * Calculates a word into its total point value
+ *
+ * @param word is a string containing the word to be calculated
+ * @return point total of the given word
+ */
+int calculate(std::string word) {
+	int points = 0;
+	for (char letter : word)
+		points += convert(letter);
+
+	return points;
 }
 
 /**
@@ -96,7 +125,7 @@ int WINAPI wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prevInstance,
 			++letters[buffer[i] - 'a'];
 	}
 
-	std::vector<std::string> words;
+	std::vector<std::pair<std::string, int>> words;
 	for (std::string word : dictionary) {
 		char frequency[26] = {};
 		for (size_t i = 0; i < word.length(); ++i) {
@@ -114,13 +143,14 @@ int WINAPI wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prevInstance,
 			}
 		}
 
-		if (valid)
-			words.push_back(word);
+		if (valid) {
+			words.push_back(make_pair(word, calculate(word)));
+		}
 	}
 
-	for (std::string word : words) {
-		word.append("\r\n");
-		if (WriteConsoleA(out, word.c_str(), word.length(), nullptr, NULL) == ERROR)
+	for (std::pair<std::string, int> word : words) {
+		word.first.append(" (" + std::to_string(word.second)  + ")\r\n");
+		if (WriteConsoleA(out, word.first.c_str(), word.first.length(), nullptr, NULL) == ERROR)
 			return EXIT_FAILURE;
 	}
 
