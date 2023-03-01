@@ -67,6 +67,7 @@ int convert(_In_ char const letter) {
 		return points[static_cast<int>(letter - 'A')];
 	else if (letter >= 'a' && letter <= 'z')
 		return points[static_cast<int>(letter - 'a')];
+	return 0;
 }
 
 /**
@@ -177,10 +178,15 @@ int WINAPI wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prevInstance,
 		return a.second < b.second;
 	});
 
-	for (std::pair<std::string, int> word : words) {
-		word.first.append(" (" + std::to_string(word.second)  + ")\r\n");
-		if (WriteConsoleA(out, word.first.c_str(), word.first.length(), nullptr, NULL) == ERROR)
+	if (words.empty()) {
+		if (WriteConsoleA(out, "No results\r\n", 12, nullptr, NULL) == ERROR)
 			return EXIT_FAILURE;
+	} else {
+		for (std::pair<std::string, int> pair : words) {
+			std::string word = pair.first + " (" + std::to_string(pair.second) + ")\r\n";
+			if (WriteConsoleA(out, word.c_str(), word.length(), nullptr, NULL) == ERROR)
+				return EXIT_FAILURE;
+		}
 	}
 
 	system("pause");
