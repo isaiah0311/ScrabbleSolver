@@ -115,7 +115,7 @@ int WINAPI wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prevInstance,
 	if (ReadConsoleA(in, buffer, sizeof(buffer), &chars, NULL) == ERROR)
 		return EXIT_FAILURE;
 
-	char letters[26] = {};
+	char letters[27] = {};
 	for (DWORD i = 0; i < chars; ++i) {
 		if (buffer[i] == '\r') {
 			buffer[i] = '\0';
@@ -127,6 +127,8 @@ int WINAPI wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prevInstance,
 			++letters[buffer[i] - 'A'];
 		else if (buffer[i] >= 'a' && buffer[i] <= 'z')
 			++letters[buffer[i] - 'a'];
+		else if (buffer[i] == '?')
+			++letters[26];
 	}
 
 	std::vector<std::pair<std::string, int>> words;
@@ -140,15 +142,22 @@ int WINAPI wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prevInstance,
 		}
 
 		bool valid = true;
+		int blanks = letters[26];
+		int points = calculate(word);
 		for (int i = 0; i < 26; ++i) {
 			if (frequency[i] > letters[i]) {
-				valid = false;
-				break;
+				if (blanks >= frequency[i] - letters[i]) {
+					blanks -= frequency[i] - letters[i];
+					points -= convert(static_cast<char>(i + 'A')) * (frequency[i] - letters[i]);
+				} else {
+					valid = false;
+					break;
+				}
 			}
 		}
 
 		if (valid) {
-			words.push_back(make_pair(word, calculate(word)));
+			words.push_back(make_pair(word, points));
 		}
 	}
 
