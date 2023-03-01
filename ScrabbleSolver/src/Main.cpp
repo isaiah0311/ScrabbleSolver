@@ -5,6 +5,7 @@
  * Scrabble word finder
  */
 
+#include <algorithm>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -59,10 +60,13 @@ std::vector<std::string> loadDictionary(_In_ HINSTANCE instance) {
  * @param letter that will be converted into a point value
  * @return point value of the given letter
  */
-int convert(char const letter) {
+int convert(_In_ char const letter) {
 	static int points[26] = { 1, 3, 3, 2, 1, 4, 2, 4, 1, 8, 5, 1, 3, 1, 1, 3,
 		10, 1, 1, 1, 1, 4, 4, 8, 4, 10 };
-	return points[static_cast<int>(letter - 'A')];
+	if (letter >= 'A' && letter <= 'Z')
+		return points[static_cast<int>(letter - 'A')];
+	else if (letter >= 'a' && letter <= 'z')
+		return points[static_cast<int>(letter - 'a')];
 }
 
 /**
@@ -71,7 +75,7 @@ int convert(char const letter) {
  * @param word is a string containing the word to be calculated
  * @return point total of the given word
  */
-int calculate(std::string word) {
+int calculate(_In_ std::string word) {
 	int points = 0;
 	for (char letter : word)
 		points += convert(letter);
@@ -147,6 +151,22 @@ int WINAPI wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prevInstance,
 			words.push_back(make_pair(word, calculate(word)));
 		}
 	}
+
+	std::sort(words.begin(), words.end(), [](_In_ std::pair<std::string, int> a, _In_ std::pair<std::string, int> b) {
+		if (a.second == b.second) {
+			if (a.first.length() == b.first.length()) {
+				for (size_t i = 0; i < a.first.length(); ++i) {
+					if (a.first.at(i) == b.first.at(i))
+						continue;
+					return a.first.at(i) < b.first.at(i);
+				}
+			}
+
+			return a.first.length() < b.first.length();
+		}
+		
+		return a.second < b.second;
+	});
 
 	for (std::pair<std::string, int> word : words) {
 		word.first.append(" (" + std::to_string(word.second)  + ")\r\n");
