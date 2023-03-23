@@ -166,10 +166,11 @@ std::string solve(_In_ std::vector<std::string> dictionary, _In_ char* input) {
 		for (std::pair<std::string, int> pair : words)
 			results.append(pair.first + " (" + std::to_string(pair.second) +
 				")\r\n");
+
+		results.pop_back();
+		results.pop_back();
 	}
 
-	results.pop_back();
-	results.pop_back();
 	return results;
 }
 
