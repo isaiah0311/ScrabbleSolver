@@ -15,9 +15,10 @@
 #include "Resources.h"
 
 constexpr int IDC_SOLVE = 101;
-constexpr int IDC_SORTING = 102;
-constexpr int IDC_POINTS = 103;
-constexpr int IDC_LENGTH = 104;
+constexpr int IDC_CLEAR = 102;
+constexpr int IDC_SORTING = 103;
+constexpr int IDC_POINTS = 104;
+constexpr int IDC_LENGTH = 105;
 
 /**
  * Sorting method used when outputting possible words from the dictionary
@@ -222,12 +223,7 @@ LRESULT CALLBACK procedure(_In_ HWND window, _In_ unsigned int msg,
 	_In_ WPARAM wParam, _In_ LPARAM lParam) {
 	static std::vector<std::string> dictionary;
 	static SortingMethod method = SortingMethod::Points;
-	static HWND input;
-	static HWND button;
-	static HWND sorting;
-	static HWND points;
-	static HWND length;
-	static HWND output;
+	static HWND children[7] = {};
 
 	LRESULT result = 0;
 
@@ -240,25 +236,28 @@ LRESULT CALLBACK procedure(_In_ HWND window, _In_ unsigned int msg,
 			RECT rect = {};
 			GetClientRect(window, &rect);
 
-			input = CreateWindowExW(NULL, L"Edit", nullptr, WS_CHILD |
+			children[0] = CreateWindowExW(NULL, L"Edit", nullptr, WS_CHILD |
 				WS_VISIBLE | WS_BORDER | ES_UPPERCASE, 65, 10, 125,
 				20, window, nullptr, instance, nullptr);
-			button = CreateWindowExW(NULL, L"Button", L"Solve", WS_CHILD |
-				WS_VISIBLE, 10, 40, 80, 20, window,
+			children[1] = CreateWindowExW(NULL, L"Button", L"Solve", WS_CHILD |
+				WS_VISIBLE, 15, 40, 80, 20, window,
 				reinterpret_cast<HMENU>(IDC_SOLVE), instance, nullptr);
-			sorting = CreateWindowExW(NULL, L"Button", L"Sorting Method",
+			children[2] = CreateWindowExW(NULL, L"Button", L"Clear", WS_CHILD |
+				WS_VISIBLE, 105, 40, 80, 20, window,
+				reinterpret_cast<HMENU>(IDC_CLEAR), instance, nullptr);
+			children[3] = CreateWindowExW(NULL, L"Button", L"Sorting Method",
 				WS_CHILD | WS_VISIBLE | BS_CENTER | BS_GROUPBOX,
 				rect.right - 130, 10, 120, 80, window,
 				reinterpret_cast<HMENU>(IDC_SORTING), instance, nullptr);
-			points = CreateWindowExW(NULL, L"Button", L"Points", WS_CHILD |
+			children[4] = CreateWindowExW(NULL, L"Button", L"Points", WS_CHILD |
 				WS_VISIBLE | BS_AUTORADIOBUTTON, rect.right - 120, 30, 100, 30,
 				window, reinterpret_cast<HMENU>(IDC_POINTS), instance,
 				nullptr);
-			length = CreateWindowExW(NULL, L"Button", L"Length", WS_CHILD |
+			children[5] = CreateWindowExW(NULL, L"Button", L"Length", WS_CHILD |
 				WS_VISIBLE | BS_AUTORADIOBUTTON, rect.right - 120, 55, 100, 30,
 				window, reinterpret_cast<HMENU>(IDC_LENGTH), instance,
 				nullptr);
-			output = CreateWindowExW(NULL, L"Edit", nullptr, WS_CHILD |
+			children[6] = CreateWindowExW(NULL, L"Edit", nullptr, WS_CHILD |
 				WS_VISIBLE | WS_VSCROLL | ES_READONLY | ES_UPPERCASE |
 				ES_MULTILINE, 10, 100, rect.right - 20, rect.bottom - 110,
 				window, nullptr, instance, nullptr);
@@ -291,14 +290,18 @@ LRESULT CALLBACK procedure(_In_ HWND window, _In_ unsigned int msg,
 				case IDC_SOLVE:
 				{
 					char text[16] = {};
-					if (GetWindowTextA(input, text, 16)) {
+					if (GetWindowTextA(children[0], text, 16)) {
 						std::string words = solve(dictionary, text,
 							method);
-						SetWindowTextA(output, words.c_str());
+						SetWindowTextA(children[6], words.c_str());
 					}
 
 					break;
 				}
+				case IDC_CLEAR:
+					SetWindowTextA(children[0], "");
+					SetWindowTextA(children[6], "");
+					break;
 				case IDC_POINTS:
 					method = SortingMethod::Points;
 					break;
