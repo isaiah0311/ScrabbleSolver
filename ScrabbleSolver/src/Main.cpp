@@ -14,7 +14,17 @@
 
 #include "Resources.h"
 
-constexpr int IDM_BUTTON = 101;
+constexpr int IDC_SOLVE = 101;
+constexpr int IDC_SORTING = 102;
+constexpr int IDC_POINTS = 103;
+constexpr int IDC_LENGTH = 104;
+
+/**
+ * Sorting method used when outputting possible words from the dictionary
+ */
+enum class SortingMethod : uint8_t {
+	Points, Length
+};
 
  /**
   * Loads the dictionary resource file
@@ -97,9 +107,11 @@ int calculate(_In_ std::string word) {
  * 
  * @param dictionary is the word list that will be iterated over
  * @param input is the letters to be used when solving for words
+ * @param method is the sorting method used for the word list
  * @return string containing a list of words that can be made
  */
-std::string solve(_In_ std::vector<std::string> dictionary, _In_ char* input) {
+std::string solve(_In_ std::vector<std::string> dictionary, _In_ char* input,
+	_In_ SortingMethod method) {
 	char letters[27] = {};
 	for (size_t i = 0; i < strlen(input); ++i) {
 		if (input[i] >= 'A' && input[i] <= 'Z')
@@ -141,23 +153,42 @@ std::string solve(_In_ std::vector<std::string> dictionary, _In_ char* input) {
 		}
 	}
 
-	std::sort(words.begin(), words.end(), [](
-		_In_ std::pair<std::string, int> a,
-		_In_ std::pair<std::string, int> b) {
-		if (a.second == b.second) {
-			if (a.first.length() == b.first.length()) {
-				for (size_t i = 0; i < a.first.length(); ++i) {
-					if (a.first.at(i) == b.first.at(i))
-						continue;
-					return a.first.at(i) < b.first.at(i);
-				}
-			}
+	switch (method) {
+		case SortingMethod::Points:
+			std::sort(words.begin(), words.end(), [](
+				_In_ std::pair<std::string, int> a,
+				_In_ std::pair<std::string, int> b) {
+					if (a.second == b.second) {
+						if (a.first.length() == b.first.length()) {
+							for (size_t i = 0; i < a.first.length(); ++i) {
+								if (a.first.at(i) == b.first.at(i))
+									continue;
+								return a.first.at(i) < b.first.at(i);
+							}
+						}
 
-			return a.first.length() < b.first.length();
-		}
+						return a.first.length() < b.first.length();
+					}
 
-		return a.second < b.second;
-	});
+					return a.second < b.second;
+				});
+			break;
+		case SortingMethod::Length:
+			std::sort(words.begin(), words.end(), [](
+				_In_ std::pair<std::string, int> a,
+				_In_ std::pair<std::string, int> b) {
+					if (a.first.length() == b.first.length()) {
+						for (size_t i = 0; i < a.first.length(); ++i) {
+							if (a.first.at(i) == b.first.at(i))
+								continue;
+							return a.first.at(i) < b.first.at(i);
+						}
+					}
+
+					return a.first.length() < b.first.length();
+				});
+			break;
+	}
 
 	std::string results;
 	if (words.empty())
@@ -190,8 +221,12 @@ std::string solve(_In_ std::vector<std::string> dictionary, _In_ char* input) {
 LRESULT CALLBACK procedure(_In_ HWND window, _In_ unsigned int msg,
 	_In_ WPARAM wParam, _In_ LPARAM lParam) {
 	static std::vector<std::string> dictionary;
+	static SortingMethod method = SortingMethod::Points;
 	static HWND input;
 	static HWND button;
+	static HWND sorting;
+	static HWND points;
+	static HWND length;
 	static HWND output;
 
 	LRESULT result = 0;
@@ -202,38 +237,95 @@ LRESULT CALLBACK procedure(_In_ HWND window, _In_ unsigned int msg,
 			HINSTANCE instance = GetModuleHandleW(nullptr);
 			dictionary = loadDictionary(instance);
 
+			RECT rect = {};
+			GetClientRect(window, &rect);
+
 			input = CreateWindowExW(NULL, L"Edit", nullptr, WS_CHILD |
-				WS_VISIBLE | ES_UPPERCASE, 10, 10, 125, 20, window, nullptr,
-				instance, nullptr);
+				WS_VISIBLE | WS_BORDER | ES_UPPERCASE, 65, 10, 125,
+				20, window, nullptr, instance, nullptr);
 			button = CreateWindowExW(NULL, L"Button", L"Solve", WS_CHILD |
-				WS_VISIBLE, 145, 10, 80, 20, window,
-				reinterpret_cast<HMENU>(IDM_BUTTON), instance, nullptr);
+				WS_VISIBLE, 10, 40, 80, 20, window,
+				reinterpret_cast<HMENU>(IDC_SOLVE), instance, nullptr);
+			sorting = CreateWindowExW(NULL, L"Button", L"Sorting Method",
+				WS_CHILD | WS_VISIBLE | BS_CENTER | BS_GROUPBOX,
+				rect.right - 130, 10, 120, 80, window,
+				reinterpret_cast<HMENU>(IDC_SORTING), instance, nullptr);
+			points = CreateWindowExW(NULL, L"Button", L"Points", WS_CHILD |
+				WS_VISIBLE | BS_AUTORADIOBUTTON, rect.right - 120, 30, 100, 30,
+				window, reinterpret_cast<HMENU>(IDC_POINTS), instance,
+				nullptr);
+			length = CreateWindowExW(NULL, L"Button", L"Length", WS_CHILD |
+				WS_VISIBLE | BS_AUTORADIOBUTTON, rect.right - 120, 55, 100, 30,
+				window, reinterpret_cast<HMENU>(IDC_LENGTH), instance,
+				nullptr);
 			output = CreateWindowExW(NULL, L"Edit", nullptr, WS_CHILD |
 				WS_VISIBLE | WS_VSCROLL | ES_READONLY | ES_UPPERCASE |
-				ES_MULTILINE, 10, 40, 565, 310, window, nullptr, instance,
-				nullptr);
+				ES_MULTILINE, 10, 100, rect.right - 20, rect.bottom - 110,
+				window, nullptr, instance, nullptr);
+
+			CheckRadioButton(window, IDC_POINTS, IDC_LENGTH, IDC_POINTS);
 			break;
 		}
 		case WM_DESTROY:
 			PostQuitMessage(0);
 			break;
+		case WM_PAINT:
+		{
+			PAINTSTRUCT paint = {};
+			HDC context = BeginPaint(window, &paint);
+			SetBkMode(context, TRANSPARENT);
+
+			RECT rect = { 10, 10, 60, 30 };
+			DrawTextW(context, L"Letters:", -1, &rect, DT_SINGLELINE |
+				DT_CENTER | DT_VCENTER);
+
+			EndPaint(window, &paint);
+			ReleaseDC(window, context);
+			break;
+		}
 		case WM_CLOSE:
 			DestroyWindow(window);
 			break;
 		case WM_COMMAND:
 			switch (LOWORD(wParam)) {
-				case IDM_BUTTON:
+				case IDC_SOLVE:
 				{
 					char text[16] = {};
 					if (GetWindowTextA(input, text, 16)) {
-						std::string words = solve(dictionary, text);
+						std::string words = solve(dictionary, text,
+							method);
 						SetWindowTextA(output, words.c_str());
 					}
 
 					break;
 				}
+				case IDC_POINTS:
+					method = SortingMethod::Points;
+					break;
+				case IDC_LENGTH:
+					method = SortingMethod::Length;
+					break;
 			}
+
 			break;
+		case WM_CTLCOLORSTATIC:
+		{
+			HWND ctl = reinterpret_cast<HWND>(lParam);
+			if (ctl == GetDlgItem(window, IDC_SORTING)) {
+				HDC context = reinterpret_cast<HDC>(wParam);
+				SetBkColor(context, RGB(200, 200, 200));
+				result =
+					reinterpret_cast<LRESULT>(GetStockObject(HOLLOW_BRUSH));
+			} else if (ctl == GetDlgItem(window, IDC_POINTS)
+				|| ctl == GetDlgItem(window, IDC_LENGTH)) {
+				HDC context = reinterpret_cast<HDC>(wParam);
+				SetBkMode(context, TRANSPARENT);
+				result =
+					reinterpret_cast<LRESULT>(GetStockObject(HOLLOW_BRUSH));
+			} else
+				result = DefWindowProcW(window, msg, wParam, lParam);
+			break;
+		}
 		default:
 			result = DefWindowProcW(window, msg, wParam, lParam);
 			break;
@@ -260,7 +352,7 @@ int WINAPI wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prevInstance,
 	windowClass.cbSize = sizeof(WNDCLASSEXW);
 	windowClass.lpfnWndProc = procedure;
 	windowClass.hInstance = instance;
-	windowClass.hbrBackground = reinterpret_cast<HBRUSH>(COLOR_BACKGROUND);
+	windowClass.hbrBackground = CreateSolidBrush(RGB(200, 200, 200));
 	windowClass.lpszClassName = L"Scrabble Solver";
 	RegisterClassExW(&windowClass);
 
