@@ -17,12 +17,13 @@
 constexpr int IDC_LETTERS = 101;
 constexpr int IDC_STARTS = 102;
 constexpr int IDC_ENDS = 103;
-constexpr int IDC_SOLVE = 104;
-constexpr int IDC_CLEAR = 105;
-constexpr int IDC_SORTING = 106;
-constexpr int IDC_POINTS = 107;
-constexpr int IDC_LENGTH = 108;
-constexpr int IDC_RESULTS = 109;
+constexpr int IDC_CONTAINS = 104;
+constexpr int IDC_SORTING = 105;
+constexpr int IDC_POINTS = 106;
+constexpr int IDC_LENGTH = 107;
+constexpr int IDC_SOLVE = 108;
+constexpr int IDC_CLEAR = 109;
+constexpr int IDC_RESULTS = 110;
 
 /**
  * Sorting method used when outputting possible words from the dictionary
@@ -117,7 +118,8 @@ int calculate(_In_ std::string word) {
  * @return string containing a list of words that can be made
  */
 std::string solve(_In_ std::vector<std::string> dictionary, _In_ char* input,
-	_In_ char* startsWith, _In_ char* endsWith, _In_ SortingMethod method) {
+	_In_ char* startsWith, _In_ char* endsWith, _In_ char* contains,
+	_In_ SortingMethod method) {
 	char letters[27] = {};
 	for (size_t i = 0; i < strlen(input); ++i) {
 		if (input[i] >= 'A' && input[i] <= 'Z')
@@ -134,6 +136,8 @@ std::string solve(_In_ std::vector<std::string> dictionary, _In_ char* input,
 			continue;
 		if (word.find(endsWith, word.length() - strlen(endsWith))
 			== std::string::npos)
+			continue;
+		if (word.find(contains) == std::string::npos)
 			continue;
 
 		char frequency[26] = {};
@@ -253,22 +257,28 @@ LRESULT CALLBACK procedure(_In_ HWND window, _In_ unsigned int msg,
 			CreateWindowExW(NULL, L"Edit", nullptr, WS_CHILD | WS_VISIBLE
 				| WS_BORDER | ES_UPPERCASE, 95, 70, 125, 20, window,
 				reinterpret_cast<HMENU>(IDC_ENDS), instance, nullptr);
-			CreateWindowExW(NULL, L"Button", L"Solve", WS_CHILD | WS_VISIBLE,
-				25, 190, 80, 20, window, reinterpret_cast<HMENU>(IDC_SOLVE),
-				instance, nullptr);
-			CreateWindowExW(NULL, L"Button", L"Clear", WS_CHILD | WS_VISIBLE,
-				125, 190, 80, 20, window, reinterpret_cast<HMENU>(IDC_CLEAR),
-				instance, nullptr);
+			CreateWindowExW(NULL, L"Edit", nullptr, WS_CHILD | WS_VISIBLE
+				| WS_BORDER | ES_UPPERCASE, 95, 100, 125, 20, window,
+				reinterpret_cast<HMENU>(IDC_CONTAINS), instance, nullptr);
+
 			CreateWindowExW(NULL, L"Button", L"Sorting Method", WS_CHILD
-				| WS_VISIBLE | BS_CENTER | BS_GROUPBOX, 10, 100,
+				| WS_VISIBLE | BS_CENTER | BS_GROUPBOX, 10, 130,
 				210, 80, window, reinterpret_cast<HMENU>(IDC_SORTING),
 				instance, nullptr);
 			CreateWindowExW(NULL, L"Button", L"Points", WS_CHILD | WS_VISIBLE
-				| BS_AUTORADIOBUTTON, 20, 120, 100, 20, window,
+				| BS_AUTORADIOBUTTON, 20, 150, 100, 20, window,
 				reinterpret_cast<HMENU>(IDC_POINTS), instance, nullptr);
 			CreateWindowExW(NULL, L"Button", L"Length", WS_CHILD | WS_VISIBLE
-				| BS_AUTORADIOBUTTON, 20, 150, 100, 20, window,
+				| BS_AUTORADIOBUTTON, 20, 180, 100, 20, window,
 				reinterpret_cast<HMENU>(IDC_LENGTH), instance, nullptr);
+
+			CreateWindowExW(NULL, L"Button", L"Solve", WS_CHILD | WS_VISIBLE,
+				25, 220, 80, 20, window, reinterpret_cast<HMENU>(IDC_SOLVE),
+				instance, nullptr);
+			CreateWindowExW(NULL, L"Button", L"Clear", WS_CHILD | WS_VISIBLE,
+				125, 220, 80, 20, window, reinterpret_cast<HMENU>(IDC_CLEAR),
+				instance, nullptr);
+
 			CreateWindowExW(NULL, L"Edit", nullptr, WS_CHILD | WS_VISIBLE
 				| WS_VSCROLL | ES_READONLY | ES_UPPERCASE | ES_MULTILINE, 230,
 				10, rect.right - 240, rect.bottom - 20, window,
@@ -298,6 +308,10 @@ LRESULT CALLBACK procedure(_In_ HWND window, _In_ unsigned int msg,
 			DrawTextW(context, L"Ends With:", -1, &rect, DT_SINGLELINE
 				| DT_VCENTER | DT_RIGHT);
 
+			rect = { 10, 100, 85, 120 };
+			DrawTextW(context, L"Contains:", -1, &rect, DT_SINGLELINE
+				| DT_VCENTER | DT_RIGHT);
+
 			EndPaint(window, &paint);
 			ReleaseDC(window, context);
 			break;
@@ -313,6 +327,7 @@ LRESULT CALLBACK procedure(_In_ HWND window, _In_ unsigned int msg,
 						HWND letters = GetDlgItem(window, IDC_LETTERS);
 						HWND starts = GetDlgItem(window, IDC_STARTS);
 						HWND ends = GetDlgItem(window, IDC_ENDS);
+						HWND contains = GetDlgItem(window, IDC_CONTAINS);
 						HWND results = GetDlgItem(window, IDC_RESULTS);
 
 						SortingMethod method = SortingMethod::None;
@@ -326,11 +341,13 @@ LRESULT CALLBACK procedure(_In_ HWND window, _In_ unsigned int msg,
 						char input[16] = {};
 						char startsWith[16] = {};
 						char endsWith[16] = {};
+						char containsStr[16] = {};
 						if (GetWindowTextA(letters, input, 16)) {
 							GetWindowTextA(starts, startsWith, 16);
 							GetWindowTextA(ends, endsWith, 16);
+							GetWindowTextA(contains, containsStr, 16);
 							std::string words = solve(dictionary, input,
-								startsWith, endsWith, method);
+								startsWith, endsWith, containsStr, method);
 							SetWindowTextA(results, words.c_str());
 						}
 
@@ -341,11 +358,13 @@ LRESULT CALLBACK procedure(_In_ HWND window, _In_ unsigned int msg,
 						HWND letters = GetDlgItem(window, IDC_LETTERS);
 						HWND starts = GetDlgItem(window, IDC_STARTS);
 						HWND ends = GetDlgItem(window, IDC_ENDS);
+						HWND contains = GetDlgItem(window, IDC_CONTAINS);
 						HWND results = GetDlgItem(window, IDC_RESULTS);
 
 						SetWindowTextW(letters, L"");
 						SetWindowTextW(starts, L"");
 						SetWindowTextW(ends, L"");
+						SetWindowTextW(contains, L"");
 						SetWindowTextW(results, L"");
 						break;
 					}
