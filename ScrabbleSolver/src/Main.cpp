@@ -132,7 +132,8 @@ std::string solve(_In_ std::vector<std::string> dictionary, _In_ char* input,
 	for (std::string word : dictionary) {
 		if (word.rfind(startsWith, 0) == std::string::npos)
 			continue;
-		if (word.find(endsWith, word.length() - strlen(endsWith)) == std::string::npos)
+		if (word.find(endsWith, word.length() - strlen(endsWith))
+			== std::string::npos)
 			continue;
 
 		char frequency[26] = {};
@@ -244,33 +245,33 @@ LRESULT CALLBACK procedure(_In_ HWND window, _In_ unsigned int msg,
 			GetClientRect(window, &rect);
 
 			CreateWindowExW(NULL, L"Edit", nullptr, WS_CHILD | WS_VISIBLE
-				| WS_BORDER | ES_UPPERCASE, 90, 10, 125, 20, window,
+				| WS_BORDER | ES_UPPERCASE, 95, 10, 125, 20, window,
 				reinterpret_cast<HMENU>(IDC_LETTERS), instance, nullptr);
 			CreateWindowExW(NULL, L"Edit", nullptr, WS_CHILD | WS_VISIBLE
-				| WS_BORDER | ES_UPPERCASE, 90, 40, 125, 20, window,
+				| WS_BORDER | ES_UPPERCASE, 95, 40, 125, 20, window,
 				reinterpret_cast<HMENU>(IDC_STARTS), instance, nullptr);
 			CreateWindowExW(NULL, L"Edit", nullptr, WS_CHILD | WS_VISIBLE
-				| WS_BORDER | ES_UPPERCASE, 90, 70, 125, 20, window,
+				| WS_BORDER | ES_UPPERCASE, 95, 70, 125, 20, window,
 				reinterpret_cast<HMENU>(IDC_ENDS), instance, nullptr);
 			CreateWindowExW(NULL, L"Button", L"Solve", WS_CHILD | WS_VISIBLE,
-				rect.right - 220, 40, 80, 20, window, reinterpret_cast<HMENU>(IDC_SOLVE),
+				25, 190, 80, 20, window, reinterpret_cast<HMENU>(IDC_SOLVE),
 				instance, nullptr);
 			CreateWindowExW(NULL, L"Button", L"Clear", WS_CHILD | WS_VISIBLE,
-				rect.right - 220, 70, 80, 20, window, reinterpret_cast<HMENU>(IDC_CLEAR),
+				125, 190, 80, 20, window, reinterpret_cast<HMENU>(IDC_CLEAR),
 				instance, nullptr);
 			CreateWindowExW(NULL, L"Button", L"Sorting Method", WS_CHILD
-				| WS_VISIBLE | BS_CENTER | BS_GROUPBOX, rect.right - 130, 10,
-				120, 80, window, reinterpret_cast<HMENU>(IDC_SORTING),
+				| WS_VISIBLE | BS_CENTER | BS_GROUPBOX, 10, 100,
+				210, 80, window, reinterpret_cast<HMENU>(IDC_SORTING),
 				instance, nullptr);
 			CreateWindowExW(NULL, L"Button", L"Points", WS_CHILD | WS_VISIBLE
-				| BS_AUTORADIOBUTTON, rect.right - 120, 30, 100, 30, window,
+				| BS_AUTORADIOBUTTON, 20, 120, 100, 20, window,
 				reinterpret_cast<HMENU>(IDC_POINTS), instance, nullptr);
 			CreateWindowExW(NULL, L"Button", L"Length", WS_CHILD | WS_VISIBLE
-				| BS_AUTORADIOBUTTON, rect.right - 120, 55, 100, 30, window,
+				| BS_AUTORADIOBUTTON, 20, 150, 100, 20, window,
 				reinterpret_cast<HMENU>(IDC_LENGTH), instance, nullptr);
 			CreateWindowExW(NULL, L"Edit", nullptr, WS_CHILD | WS_VISIBLE
-				| WS_VSCROLL | ES_READONLY | ES_UPPERCASE | ES_MULTILINE, 10,
-				100, rect.right - 20, rect.bottom - 110, window,
+				| WS_VSCROLL | ES_READONLY | ES_UPPERCASE | ES_MULTILINE, 230,
+				10, rect.right - 240, rect.bottom - 20, window,
 				reinterpret_cast<HMENU>(IDC_RESULTS), instance, nullptr);
 
 			CheckRadioButton(window, IDC_POINTS, IDC_LENGTH, IDC_POINTS);
