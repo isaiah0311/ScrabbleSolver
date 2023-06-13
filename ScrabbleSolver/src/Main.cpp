@@ -12,18 +12,8 @@
 
 #include <windows.h>
 
+#include "Menus.h"
 #include "Resources.h"
-
-constexpr int IDC_LETTERS = 101;
-constexpr int IDC_STARTS = 102;
-constexpr int IDC_ENDS = 103;
-constexpr int IDC_CONTAINS = 104;
-constexpr int IDC_SORTING = 105;
-constexpr int IDC_POINTS = 106;
-constexpr int IDC_LENGTH = 107;
-constexpr int IDC_SOLVE = 108;
-constexpr int IDC_CLEAR = 109;
-constexpr int IDC_RESULTS = 110;
 
 /**
  * Sorting method used when outputting possible words from the dictionary
@@ -118,7 +108,7 @@ int calculate(_In_ std::string word) {
  * @return string containing a list of words that can be made
  */
 std::string solve(_In_ std::vector<std::string> dictionary, _In_ char* input,
-	_In_ char* startsWith, _In_ char* endsWith, _In_ char* contains,
+	_In_opt_ char* startsWith, _In_opt_ char* endsWith, _In_opt_ char* contains,
 	_In_ SortingMethod method) {
 	char letters[27] = {};
 	for (size_t i = 0; i < strlen(input); ++i) {
@@ -250,41 +240,41 @@ LRESULT CALLBACK procedure(_In_ HWND window, _In_ unsigned int msg,
 
 			CreateWindowExW(NULL, L"Edit", nullptr, WS_CHILD | WS_VISIBLE
 				| WS_BORDER | ES_UPPERCASE, 95, 10, 125, 20, window,
-				reinterpret_cast<HMENU>(IDC_LETTERS), instance, nullptr);
+				reinterpret_cast<HMENU>(IDM_LETTERS), instance, nullptr);
 			CreateWindowExW(NULL, L"Edit", nullptr, WS_CHILD | WS_VISIBLE
 				| WS_BORDER | ES_UPPERCASE, 95, 40, 125, 20, window,
-				reinterpret_cast<HMENU>(IDC_STARTS), instance, nullptr);
+				reinterpret_cast<HMENU>(IDM_STARTS), instance, nullptr);
 			CreateWindowExW(NULL, L"Edit", nullptr, WS_CHILD | WS_VISIBLE
 				| WS_BORDER | ES_UPPERCASE, 95, 70, 125, 20, window,
-				reinterpret_cast<HMENU>(IDC_ENDS), instance, nullptr);
+				reinterpret_cast<HMENU>(IDM_ENDS), instance, nullptr);
 			CreateWindowExW(NULL, L"Edit", nullptr, WS_CHILD | WS_VISIBLE
 				| WS_BORDER | ES_UPPERCASE, 95, 100, 125, 20, window,
-				reinterpret_cast<HMENU>(IDC_CONTAINS), instance, nullptr);
+				reinterpret_cast<HMENU>(IDM_CONTAINS), instance, nullptr);
 
 			CreateWindowExW(NULL, L"Button", L"Sorting Method", WS_CHILD
 				| WS_VISIBLE | BS_CENTER | BS_GROUPBOX, 10, 130,
-				210, 80, window, reinterpret_cast<HMENU>(IDC_SORTING),
+				210, 80, window, reinterpret_cast<HMENU>(IDM_SORTING),
 				instance, nullptr);
 			CreateWindowExW(NULL, L"Button", L"Points", WS_CHILD | WS_VISIBLE
 				| BS_AUTORADIOBUTTON, 20, 150, 100, 20, window,
-				reinterpret_cast<HMENU>(IDC_POINTS), instance, nullptr);
+				reinterpret_cast<HMENU>(IDM_POINTS), instance, nullptr);
 			CreateWindowExW(NULL, L"Button", L"Length", WS_CHILD | WS_VISIBLE
 				| BS_AUTORADIOBUTTON, 20, 180, 100, 20, window,
-				reinterpret_cast<HMENU>(IDC_LENGTH), instance, nullptr);
+				reinterpret_cast<HMENU>(IDM_LENGTH), instance, nullptr);
 
 			CreateWindowExW(NULL, L"Button", L"Solve", WS_CHILD | WS_VISIBLE,
-				25, 220, 80, 20, window, reinterpret_cast<HMENU>(IDC_SOLVE),
+				25, 220, 80, 20, window, reinterpret_cast<HMENU>(IDM_SOLVE),
 				instance, nullptr);
 			CreateWindowExW(NULL, L"Button", L"Clear", WS_CHILD | WS_VISIBLE,
-				125, 220, 80, 20, window, reinterpret_cast<HMENU>(IDC_CLEAR),
+				125, 220, 80, 20, window, reinterpret_cast<HMENU>(IDM_CLEAR),
 				instance, nullptr);
 
 			CreateWindowExW(NULL, L"Edit", nullptr, WS_CHILD | WS_VISIBLE
 				| WS_VSCROLL | ES_READONLY | ES_UPPERCASE | ES_MULTILINE, 230,
 				10, rect.right - 240, rect.bottom - 20, window,
-				reinterpret_cast<HMENU>(IDC_RESULTS), instance, nullptr);
+				reinterpret_cast<HMENU>(IDM_RESULTS), instance, nullptr);
 
-			CheckRadioButton(window, IDC_POINTS, IDC_LENGTH, IDC_POINTS);
+			CheckRadioButton(window, IDM_POINTS, IDM_LENGTH, IDM_POINTS);
 			break;
 		}
 		case WM_DESTROY:
@@ -322,19 +312,19 @@ LRESULT CALLBACK procedure(_In_ HWND window, _In_ unsigned int msg,
 		case WM_COMMAND:
 			if (HIWORD(wParam) == BN_CLICKED) {
 				switch (LOWORD(wParam)) {
-					case IDC_SOLVE:
+					case IDM_SOLVE:
 					{
-						HWND letters = GetDlgItem(window, IDC_LETTERS);
-						HWND starts = GetDlgItem(window, IDC_STARTS);
-						HWND ends = GetDlgItem(window, IDC_ENDS);
-						HWND contains = GetDlgItem(window, IDC_CONTAINS);
-						HWND results = GetDlgItem(window, IDC_RESULTS);
+						HWND letters = GetDlgItem(window, IDM_LETTERS);
+						HWND starts = GetDlgItem(window, IDM_STARTS);
+						HWND ends = GetDlgItem(window, IDM_ENDS);
+						HWND contains = GetDlgItem(window, IDM_CONTAINS);
+						HWND results = GetDlgItem(window, IDM_RESULTS);
 
 						SortingMethod method = SortingMethod::None;
-						if (IsDlgButtonChecked(window, IDC_POINTS)
+						if (IsDlgButtonChecked(window, IDM_POINTS)
 							== BST_CHECKED)
 							method = SortingMethod::Points;
-						else if (IsDlgButtonChecked(window, IDC_LENGTH)
+						else if (IsDlgButtonChecked(window, IDM_LENGTH)
 							== BST_CHECKED)
 							method = SortingMethod::Length;
 
@@ -353,13 +343,13 @@ LRESULT CALLBACK procedure(_In_ HWND window, _In_ unsigned int msg,
 
 						break;
 					}
-					case IDC_CLEAR:
+					case IDM_CLEAR:
 					{
-						HWND letters = GetDlgItem(window, IDC_LETTERS);
-						HWND starts = GetDlgItem(window, IDC_STARTS);
-						HWND ends = GetDlgItem(window, IDC_ENDS);
-						HWND contains = GetDlgItem(window, IDC_CONTAINS);
-						HWND results = GetDlgItem(window, IDC_RESULTS);
+						HWND letters = GetDlgItem(window, IDM_LETTERS);
+						HWND starts = GetDlgItem(window, IDM_STARTS);
+						HWND ends = GetDlgItem(window, IDM_ENDS);
+						HWND contains = GetDlgItem(window, IDM_CONTAINS);
+						HWND results = GetDlgItem(window, IDM_RESULTS);
 
 						SetWindowTextW(letters, L"");
 						SetWindowTextW(starts, L"");
@@ -375,13 +365,13 @@ LRESULT CALLBACK procedure(_In_ HWND window, _In_ unsigned int msg,
 		case WM_CTLCOLORSTATIC:
 		{
 			HWND child = reinterpret_cast<HWND>(lParam);
-			if (child == GetDlgItem(window, IDC_SORTING)) {
+			if (child == GetDlgItem(window, IDM_SORTING)) {
 				HDC context = reinterpret_cast<HDC>(wParam);
 				SetBkColor(context, RGB(200, 200, 200));
 				result =
 					reinterpret_cast<LRESULT>(GetStockObject(HOLLOW_BRUSH));
-			} else if (child == GetDlgItem(window, IDC_POINTS)
-				|| child == GetDlgItem(window, IDC_LENGTH)) {
+			} else if (child == GetDlgItem(window, IDM_POINTS)
+				|| child == GetDlgItem(window, IDM_LENGTH)) {
 				HDC context = reinterpret_cast<HDC>(wParam);
 				SetBkMode(context, TRANSPARENT);
 				result =
@@ -416,6 +406,7 @@ int WINAPI wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prevInstance,
 	windowClass.cbSize = sizeof(WNDCLASSEXW);
 	windowClass.lpfnWndProc = procedure;
 	windowClass.hInstance = instance;
+	windowClass.hIcon = LoadIconW(instance, L"IDI_ICON");
 	windowClass.hbrBackground = CreateSolidBrush(RGB(200, 200, 200));
 	windowClass.lpszClassName = L"Scrabble Solver";
 	RegisterClassExW(&windowClass);

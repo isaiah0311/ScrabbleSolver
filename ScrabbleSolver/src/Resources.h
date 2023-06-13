@@ -7,4 +7,5 @@
 
 #pragma once
 
-#define ID_DICTIONARY					101
+#define IDI_ICON		101
+#define ID_DICTIONARY	102

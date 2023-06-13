@@ -165,10 +165,14 @@
     <Text Include="res\Dictionary.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\Menus.h" />
     <ClInclude Include="src\Resources.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src\Resources.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\Icon.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
